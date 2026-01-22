@@ -1,49 +1,63 @@
-// Boot loader.
-//
-// Part of the boot block, along with bootasm.S, which calls bootmain().
-// bootasm.S has put the processor into protected 32-bit mode.
-// bootmain() loads an ELF kernel image from the disk starting at
-// sector 1 and then jumps to the kernel entry routine.
-
+// 引导程序的C语言部分，负责加载并运行内核
 #include "types.h"
 #include "elf.h"
 #include "x86.h"
 #include "memlayout.h"
 
+// 定义扇区大小
 #define SECTSIZE  512
 
+// 从磁盘偏移offset处读取count个字节到虚拟地址va
 void readseg(uchar*, uint, uint);
 
+// bootmain函数是bootloader的C入口点，由bootasm.S调用
 void
 bootmain(void)
 {
+  // 任务3要求：在bootmain入口处打印信息
+  cprintf("[BOOT] enter bootmain\n");
+
+  // 定义ELF头指针，并读取第一个扇区（包含ELF头）到内存地址0x10000
   struct elfhdr *elf;
-  struct proghdr *ph, *eph;
-  void (*entry)(void);
-  uchar* pa;
+  elf = (struct elfhdr*)0x10000;
 
-  elf = (struct elfhdr*)0x10000;  // scratch space
+  readseg((uchar*)elf, SECTSIZE*8, 0);
 
-  // Read 1st page off disk
-  readseg((uchar*)elf, 4096, 0);
-
-  // Is this an ELF executable?
-  if(elf->magic != ELF_MAGIC)
-    return;  // let bootasm.S handle error
-
-  // Load each program segment (ignores ph flags).
-  ph = (struct proghdr*)((uchar*)elf + elf->phoff);
-  eph = ph + elf->phnum;
-  for(; ph < eph; ph++){
-    pa = (uchar*)ph->paddr;
-    readseg(pa, ph->filesz, ph->off);
-    if(ph->memsz > ph->filesz)
-      stosb(pa + ph->filesz, 0, ph->memsz - ph->filesz);
+  // 检查ELF魔数，确保这是一个有效的ELF可执行文件
+  if(elf->magic != ELF_MAGIC){
+    // 如果魔数不匹配，说明磁盘上的内核镜像可能已损坏，引导失败
+    goto bad;
   }
 
-  // Call the entry point from the ELF header.
-  // Does not return!
-  entry = (void(*)(void))(elf->entry);
+  // 任务3要求：在成功读取ELF头后打印信息
+  cprintf("[BOOT] elf header loaded\n");
+
+  // 获取程序头表(Program Header Table)的起始地址
+  struct proghdr *ph, *eph;
+  ph = (struct proghdr*)((uchar*)elf + elf->phoff);
+  eph = ph + elf->phnum; // 程序头表的结束地址
+
+  // 遍历程序头表，将每个需要加载的段(segment)从磁盘读入内存
+  for(; ph < eph; ph++){
+    // 只加载类型为PT_LOAD（可加载）的段
+    if(ph->type != ELF_PROG_LOAD){
+      continue;
+    }
+    // 从磁盘偏移ph->off处读取ph->filesz字节到内存地址ph->va
+    readseg((uchar*)ph->va, ph->filesz, ph->off);
+    // 如果段在内存中的大小ph->memsz大于文件大小ph->filesz，则将剩余部分（.bss段）清零
+    if(ph->memsz > ph->filesz){
+      stosb((uchar*)ph->va + ph->filesz, 0, ph->memsz - ph->filesz);
+    }
+  }
+
+  // 任务3要求：在所有内核段加载完毕后打印信息
+  cprintf("[BOOT] kernel loaded\n");
+
+  // 从ELF头中获取内核入口点地址，并跳转到该地址执行，将控制权完全交给内核
+  // entry()函数通常在entry.S中定义
+  ( (void (*)(void)) (elf->entry) )();
+
   entry();
 }
 

@@ -41,8 +41,13 @@ multiboot_header:
 _start = V2P_WO(entry)
 
 # Entering xv6 on boot processor, with paging off.
+# 标记内核入口点
+# [KERNEL] 内核入口点 entry.S - 控制权从bootloader移交到内核
+
 .globl entry
 entry:
+  # 关键步骤1: 开启分页，切换到内核页表
+  # 将初始页表`entrypgdir`的物理地址加载到CR3寄存器（页目录基址寄存器）
   # Turn on page size extension for 4Mbyte pages
   movl    %cr4, %eax
   orl     $(CR4_PSE), %eax

@@ -12,11 +12,12 @@
 start:
   cli                         # BIOS enabled interrupts; disable
 
+  # 将段寄存器DS, ES, SS全部清零，为进入保护模式做准备
   # Zero data segment registers DS, ES, and SS.
-  xorw    %ax,%ax             # Set %ax to zero
-  movw    %ax,%ds             # -> Data Segment
-  movw    %ax,%es             # -> Extra Segment
-  movw    %ax,%ss             # -> Stack Segment
+  xorw    %ax,%ax             # 将AX寄存器清零
+  movw    %ax,%ds             # 数据段寄存器DS = 0
+  movw    %ax,%es             # 附加段寄存器ES = 0
+  movw    %ax,%ss             # 栈段寄存器SS = 0
 
   # Physical address line A20 is tied to zero so that the first PCs 
   # with 2 MB would run software that assumed 1 MB.  Undo that.
@@ -85,4 +86,3 @@ gdt:
 gdtdesc:
   .word   (gdtdesc - gdt - 1)             # sizeof(gdt) - 1
   .long   gdt                             # address gdt
-
