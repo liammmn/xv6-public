@@ -14,7 +14,7 @@ start:
 
   # 将段寄存器DS, ES, SS全部清零，为进入保护模式做准备
   # Zero data segment registers DS, ES, and SS.
-  xorw    %ax,%ax             # 将AX寄存器清零
+  xorw    %ax,%ax               # 将AX寄存器清零
   movw    %ax,%ds             # 数据段寄存器DS = 0
   movw    %ax,%es             # 附加段寄存器ES = 0
   movw    %ax,%ss             # 栈段寄存器SS = 0

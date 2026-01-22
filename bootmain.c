@@ -14,7 +14,7 @@ void readseg(uchar*, uint, uint);
 void
 bootmain(void)
 {
-  // 任务3要求：在bootmain入口处打印信息
+  // 在bootmain入口处打印信息
   cprintf("[BOOT] enter bootmain\n");
 
   // 定义ELF头指针，并读取第一个扇区（包含ELF头）到内存地址0x10000
