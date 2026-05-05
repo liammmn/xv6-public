@@ -87,8 +87,11 @@ kalloc(void)
   if(kmem.use_lock)
     acquire(&kmem.lock);
   r = kmem.freelist;
-  if(r)
+  if(r){
     kmem.freelist = r->next;
+    // >>> ADDED: 打印分配页地址
+    cprintf("[MEM] alloc page at 0x%x\n", (uint)r);
+  }
   if(kmem.use_lock)
     release(&kmem.lock);
   return (char*)r;
