@@ -85,6 +85,9 @@ sys_write(void)
   int n;
   char *p;
 
+  // >>> ADDED: 打印进入 sys_write
+  cprintf("[KERNEL] sys_write invoked\n");
+
   if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
     return -1;
   return filewrite(f, p, n);
