@@ -15,7 +15,7 @@ void
 bootmain(void)
 {
   // 在bootmain入口处打印信息
-  cprintf("[BOOT] enter bootmain\n");
+  // cprintf("[BOOT] enter bootmain\n");
 
   // 定义ELF头指针，并读取第一个扇区（包含ELF头）到内存地址0x10000
   struct elfhdr *elf;
