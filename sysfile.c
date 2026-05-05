@@ -84,6 +84,8 @@ sys_write(void)
   struct file *f;
   int n;
   char *p;
+  
+  cprintf("[PID=%d] ", proc->pid);
 
   // >>> ADDED: 打印进入 sys_write
   cprintf("[KERNEL] sys_write invoked\n");
